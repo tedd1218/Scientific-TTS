@@ -1,0 +1,289 @@
+Koopmans' condition for density-functional theory
+In approximate Kohn-Sham density-functional theory, self-interaction manifests itself as the dependence of the energy of an orbital on its fractional occupation. This unphysical behavior translates into qualitative and quantitative errors that pervade many fundamental aspects of density-functional predictions. Here, we first examine self-interaction in terms of the discrepancy between total and partial electron removal energies, and then highlight the importance of imposing the generalized Koopmans' condition-that identifies orbital energies as opposite total electron removal energies-to resolve this discrepancy. In the process, we derive a correction to approximate functionals that, in the frozen-orbital approximation, eliminates the unphysical occupation dependence of orbital energies up to the third order in the single-particle densities. This nonKoopmans correction brings physical meaning to single-particle energies; when applied to common local or semilocal density functionals it provides results that are in excellent agreement with experimental data-with an accuracy comparable to that of GW many-body perturbation theory-while providing an explicit total energy functional that preserves or improves on the description of established structural properties
+
+DOI: 10.1103/PhysRevB.82.115121
+PACS number(s): 31.15.E-, 32.10.Hq, 32.80.Fb, 33.15.Ry
+
+
+I. INTRODUCTION
+
+Density-functional approximations, which account for correlated electron interactions via an explicit functional E sub xc of the electronic density rho, provide very good predictions of total energy differences for systems with nonfractional occupations. One of the notable successes of local and semilocal density-functional calculations is the accurate description of ionization processes involving the complete filling or entire depletion of frontier orbitals. In quantitative terms, the local-spin-density (LSD) approximation and semilocal generalized-gradient approximations (GGAs) predict the energy differences of such reactions, namely, the electron affinity
+A sub N=E sub N-E sub N+1
+and the first ionization potential
+I sub N=E sub N-1-E sub N
+(where E sub N stands for the ground-state energy of the N-electron system) with a precision of a few tenths of an electron volt, which compares favorably to that of more expensive wave function methods
+
+Considering the excellent performance of densityfunctional approximations in predicting total ionization energies, it is surprising to discover that the same theories fail in describing partial ionization processes. As a matter of fact, local and semilocal functionals overestimate (by as much as 40 % ) the absolute energy difference per electron
+A sub N=-.d E sub M over d M|_M=N to the power of +
+of an infinitesimal electron addition and underestimate with the same error differential energy changes
+I sub N=-.d E sub M over d M|_M=N
+upon electron removal.
+Analytically, the discrepancy between total and partial differential ionization energies manifests itself into the convexity of E sub N to the power of LSD as a function of N ( while the exact ground-state energy E sub N versus N is known to be described by a series of straight-line segments with positive derivative dis- continuities at integer values of N. (For simplicity, we restrict the entire discussion to the case of the LSD functional; semilocal GGA functionals exhibit identical trends.)
+
+It is important to note that the discrepancy described above can be also related to the incorrect analytical behavior of the LSD chemical potential mu sub N to the power of LSD, i.e., the Lagrange multiplier associated to particle-number conservation in the nearzero temperature grand-canonical minimization of the total energy, minimum _rho[rho]-mu int d r rho(r) which can be interpreted physically as the opposite electronegativity of the system
+mu sub N=-chi sub N=-A sub N+I sub N over 2
+and determines the direction and magnitude of electron transfer between separated molecular fragments. In fact, the exact dependence of the chemical potential mu sub N when N varies through an integer particle number Z is known to be
+mu sub N={
+-I sub Z Z-1<N<Z ; or -chi sub Z to the power of M=-1 over 2(A sub Z+I sub Z) N=Z ; or -A sub Z Z<N<Z+1,. where chi sub N to the power of M denotes the Mulliken electronegativity of the N-electron system
+
+In related physical terms, the discrepancy between ionization energies is often interpreted as arising from electron self-interaction that causes the removal of a small fraction of an electron from a filled electronic state to be energetically less costly, in absolute value, than its addition to the corresponding empty state
+
+This self-interaction error is at the origin of important quantitative and qualitative failures that pervade crucial aspects of electronic-structure predictions. Consider, for example, the dissociation of a cation dimer X sub 2 to the power of +in the infinite interatomic separation limit. Here, the energy cost of removing a small electron fraction from X is lower than the energy gained in adding an electron fraction to X to the power of +. As a result, a portion of the electronic charge will transfer from X to X to the power of +, eventually leading to the split-charge configuration 2 X / 2+}, with a total energy that is correspondingly overstabilized with respect to the exact solution
+
+Related self-interaction artifacts explain other important failures of local and semilocal functionals in predicting electron-transfer processes, electronic transport, molecular adsorption, reaction barriers and energies, and electrical polarization in extended systems. Selfinteraction is also connected to the underestimation of the differential energy gap epsilon sub gap to the power of deriv =I sub N-A sub N of molecules, semiconductors, and insulators within LSD and GGAs
+
+This work is organized as follows. First, we reexamine the Perdew-Zunger (PZ) one-electron self-interaction correction in terms of total and differential ionization energies. Then, after deriving an exact measure of the unphysical curvature of E sub N as a function of N based on the generalized Koopmans' theorem, we introduce a functional that minimizes selfinteraction errors by enforcing Koopmans' condition, thereby largely eliminating the discrepancy between total and differ-
+
+ential ionization energies while restoring the piecewise linearity of the ground-state energy. We conclude the study with extensive atomic and molecular calculations to demonstrate the predictive power of the non-Koopmans (NK) selfinteraction correction
+
+
+II. SELF-INTERACTION CORRECTION
+
+
+A. PERDEW-ZUNGER ONE-ELECTRON CORRECTION
+
+Several methods have been proposed to reduce selfinteraction contributions and restore the internal consistency between total and partial electron removal energies. ~A widely used approach is that introduced by Perdew and Zunger, which consists of correcting self-interaction in the one-electron approximation by subtracting one-electron Hartree and exchange-correlation contributions. Explicitly, at the LSD level, the PZ orbital-dependent functional and Hamiltonian are defined as
+E to the power of PZ, where =E to the power of LSD+the sum of sub i sigma(-E sub H[rho sub i sigma]-E sub xc[rho sub i sigma]), ; or, where =E to the power of LSD+the sum of sub i sigma Xi sub i sigma,
+h hat sub i sigma to the power of PZ= to the power of LSD[rho]-v hat sub H[rho sub i sigma]-v hat sub xc, sigma[rho sub i sigma],
+where rho sub i sigma(r) denotes the orbital density ( sigma= plus or minus 1 over 2 represents the spin), v sub H(r)=delta E sub H / delta rho(r) is the electrostatic Hartree potential, v sub xc, sigma(r)=delta E sub xc / delta rho sub sigma(r) stands for the spin-dependent exchange-correlation potential, and the PZ one-electron corrective contributions are defined as Xi sub i sigma=-E sub H[rho sub i sigma]-E sub xc[rho sub i sigma]
+
+The effect of the PZ self-interaction correction on the partial electron removal energies of an isolated carbon atom is depicted in. We observe that the LSD differential ionization potential I sub N to the power of LSD and electron affinity A sub N-1 to the power of LSD deviate by more than 5 eV from the experimental total removal energy, whereas their average is in close agreement with experiment. The PZ correction improves the precision of the predicted ionization potential I sub N to the power of PZ, reducing the error to less than 0.4 eV. The inaccuracy of the PZ electron affinity A sub N-1 to the power of PZ remains almost unchanged due to the fact that the PZ one-electron correction vanishes for empty states (the slight variation of
+the differential electron affinity from 17.79 to 17.65 eV is only due to the self-consistent reconfiguration of the occupied manifold). Consequently, the PZ functional achieves a substantial but only partial correction of self-interaction, reducing the unphysical convexity, i.e., the discrepancy A sub N-1 -I sub N, by a factor of two
+
+Another notable feature in is the overestimation of the average of the ionization potential I sub N to the power of PZ and electron affinity A sub N-1 to the power of PZ. Since the average 1 over 2(A sub N-1 to the power of PZ+I sub N to the power of PZ) roughly approximates I sub N to the power of PZ this deviation translates into overestimated total ionization energies and excessively negative ground-state energies E sub N to the power of PZ=-Sigma sub M=1 to the power of N I sub M to the power of PZ. (Semiempirical relations between total energies and low-order ionization potentials have been also evidenced by Pucci and March in the reference.) In the case of isolated atoms, the energy underestimation improves on the description of electron correlation, bringing PZ ground-state energies in remarkable agreement with experiment. However, in the more general case of many-electron polyatomic systems, PZ ground-state energies are found to be overcorrelated, yielding inaccurate dissociation energies and excessively short bond lengths
+
+Various downscaling methods have been proposed to correct the above trends. Nevertheless, the performance of such schemes is inherently limited by the fact that downscaling the PZ correction impairs the accuracy of differential ionization energies. For example, it is seen in that a functional E to the power of alpha PZ, in which the self-interaction correction is linearly downscaled by a factor alpha to the power of PZ
+E to the power of alpha PZ=E to the power of LSD+alpha to the power of PZ(E to the power of PZ-E to the power of LSD)
+cannot counterbalance the deviation of I sub N to the power of PZ approximately equals 1 over 2(A sub N-1 to the power of PZ+I sub N to the power of PZ) without altering the precision of I sub N to the power of PZ. More sophisticated downscaling methods exhibit identical trends
+
+In the next sections, we will derive a correction that cancels self-interaction errors for systems with fractional occupations without affecting the precision of total energy differences and equilibrium structural properties for systems with nonfractional occupations
+
+
+B. MEASURE OF SELF-INTERACTION
+
+The initial conceptual step in the construction of the selfinteraction correction is to set forth a quantitative measure of self-interaction errors valid in the many-electron case-i.e., beyond the one-electron approximation of the PerdewZunger correction. With this self-interaction measure in hand, we will construct an improved self-interaction correction functional, working first in the simplified picture where electronic orbitals are kept frozen (the section C), and then considering orbital relaxation as the next stage of refinement (the section E)
+
+Because the self-interaction energies Pi sub i sigma quantify deviations from the Koopmans' linearity the equation, they will be termed here non-Koopmans energies-the same terminology as that employed in the reference and
+
+Making then use of Slater's theorem Delta E sub i sigma=-int sub 0 to the power of f sub i sigma d f epsilon sub i sigma(f)
+the non-Koopmans energy can be rewritten as
+Pi sub i sigma(f)=int sub 0 to the power of f sub i sigma d f to the power of [epsilon sub i sigma(f)-epsilon sub i sigma(f to the power of )]
+
+In this form, the energy Pi sub i sigma(f) is clearly seen to correspond to the integrated change of the orbital energy upon varying the orbital occupation-in particular, it is straightforward to verify that Pi sub i sigma(f)=0 if the orbital energy epsilon sub i sigma(f to the power of ) does not vary with the orbital occupation f to the power of
+
+Using the measure defined in the equation, the nonself-
+interaction criterion the equation can be restated exactly as a generalized Koopmans' condition
+Pi sub i sigma(f)=0 less than or equal to f less than or equal to
+
+Equation (19) is of central importance in this work; it provides a simple quantitative criterion in terms of a rigorous nonlinearity measure to assess and correct self-interaction errors. The suggestion of using non-Koopmans corrections to minimize self-interaction has been recently introduced, in preliminary form, by Dabo, Cococcioni, and Marzari in the reference, and, in heuristic form, by Lany and Zunger in the reference. In the context of range-separated hybrid functionals, the importance of satisfying Koopmans' equalities for frontier molecular orbitals has also been evidenced by Stein, Kronik and Baer in the reference. The consequences of Koopmans' condition are discussed in the next sections
+
+
+C. BARE NON-KOOPMANS CORRECTION
+
+On the basis of the above quantitative analysis, our objective now is to linearize the dependence of the total energy as a function of orbital occupations by modifying the expression of the energy functional in order to cancel the nonKoopmans terms Pi sub i sigma(f). To render this complex problem tractable, we first consider the restricted case where all orbitals are frozen while the occupation of one of them is changing in the course of a fictitious ionization process (the frozen-orbital approximation). Within this paradigm, the equation becomes the restricted Koopmans' condition
+Pi sub i sigma to the power of u(f)=0 less than or equal to f less than or equal to 1,
+where the superscript u stands for unrelaxed. Here, the frozen-orbital non-Koopmans energy Pi sub i sigma to the power of u is defined as
+Pi sub i sigma to the power of u(f)=int sub 0 to the power of f sub i sigma d f to the power of [epsilon sub i sigma to the power of u(f)-epsilon sub i sigma to the power of u(f to the power of )]
+where epsilon sub i sigma to the power of u(f) is the unrelaxed orbital energy calculated keeping all the orbitals frozen while setting f sub i sigma to be f. We underscore that in the specific case of one-electron systems and for f=0, the equation yields the one-electron self-interaction condition of Perdew and Zunger Xi sub i sigma=0
+
+The restricted Koopmans' condition is thus seen to encompass the Perdew-Zunger condition, thereby representing a more comprehensive criterion for assessing and correcting self-interaction errors
+
+Expectedly, satisfying the restricted Koopmans' condition is exactly equivalent to fulfilling the restricted Koopmans' theorem
+Delta E sub i sigma to the power of u=-f sub i sigma epsilon sub i sigma to the power of u(f) less than or equal to f less than or equal to 1,
+where
+Delta E sub i sigma to the power of u=E sub i sigma to the power of u(0)-E sub i sigma to the power of u(f sub i sigma)
+denotes the unrelaxed electron removal energy.
+An example of a functional that exhibits a linear frozenorbital energy dependence is provided by the Hartree-Fock
+(HF) theory, generalized to fractional occupations. Indeed, at the HF level, one can verify that
+Pi sub i sigma to the power of u, HF(f)=0 less than or equal to f less than or equal to 1
+due to the fact that the expectation value epsilon sub i sigma to the power of u, HF(f) does not depend on f. For functionals that do not satisfy the restricted Koopmans' condition the equation, the unrelaxed electron removal energy can only be expressed in terms of the restricted Slater integral
+Delta E sub i sigma to the power of u=-int sub 0 to the power of f sub i sigma d f epsilon sub i sigma to the power of u(f)
+(note that this relation is satisfied by any functional whether it is subject or not to self-interaction errors)
+
+These considerations allow us to introduce our corrected functional aiming to satisfy Koopmans' condition; at frozen orbital, it is obtained by replacing Slater terms-the equation, where single-particle energies are function of their own occupation-with Koopmans terms-the equation, where singleparticle energies do not depend on occupations. In particular, we evaluate here the Koopmans terms at a given orbital occupation f=f sub ref that defines the reference transition state (the determination of the reference occupation f sub ref shall be explained on the basis of Slater's approximation and exchangecorrelation hole arguments in the section F). Explicitly, in the case of the LSD functional, the NK self-interaction correction to the energy is defined as
+E to the power of NK=E to the power of LSD-the sum of sub i sigma[-f sub i sigma epsilon sub i sigma to the power of u, LSD(f sub ref)+int sub 0 to the power of f sub i sigma d f epsilon sub i sigma to the power of u, LSD(f)]
+where the negative sign in front of the sum follows from the convention that ionization energies are positive. Rewriting the equation in terms of the frozen-orbital non-Koopmans energies of the equation, we obtain
+E to the power of NK=E to the power of LSD+the sum of sub i sigma Pi sub i sigma to the power of u, LSD(f sub ref)
+where the non-Koopmans corrective terms can now be recast into the explicit functional form
+Pi sub i sigma to the power of u, LSD(f sub ref)=, where f sub i sigma(2 f sub ref-f sub i sigma) E sub H[n sub i sigma]-E sub xc to the power of LSD[rho] ; or, where +E sub xc to the power of LSD[rho-rho sub i sigma]+int d r rho sub i sigma(r) v sub xc, sigma to the power of LSD(r ;[rho sub i sigma to the power of ref]) d r
+where n sub i sigma(r)=the absolute value of psi sub i sigma to the power of 2(r) and rho sub i sigma(r)=f sub i sigma n sub i sigma(r). Here, the electronic density rho sub i sigma to the power of ref (r) stands for the reference transition-state density
+rho sub i sigma to the power of ref(r), where =f sub ref n sub i sigma(r)+the sum of sub j sigma to the power of not equal to i sigma f sub j sigma to the power of n sub j sigma to the power of (r), ; or, where =rho(r)+(f sub ref-f sub i sigma) n sub i sigma(r)
+
+We now derive the expression of the orbital-dependent NK Hamiltonian. To this end, we first calculate the functional
+derivative of the energy contribution Pi sub i sigma to the power of u, LSD(f sub ref ) with respect to variations of the orbital density rho sub i sigma. The expression of the functional derivative reads
+delta Pi sub i sigma to the power of u, LSD over delta rho sub i sigma(r)=, where (f sub ref-f sub i sigma) v sub H(r ;[n sub i sigma])+v sub xc, sigma to the power of LSD(r ;[rho sub i sigma to the power of ref]) ; or, where -v sub xc, sigma to the power of LSD(r ;[rho])+w sub ref, i sigma to the power of LSD(r)
+
+In the equation, the potential w sub ref, i sigma to the power of LSD denotes
+w sub ref, i sigma to the power of LSD(r)=, where f sub ref[int d r to the power of f sub Hxc, sigma sigma to the power of LSD(r, r to the power of ;[rho sub i sigma to the power of ref]) n sub i sigma(r to the power of ). ; or, where .-int d r to the power of d r to the power of f sub Hxc, sigma sigma to the power of LSD(r to the power of, r to the power of ;[rho sub i sigma to the power of ref]) n sub i sigma(r to the power of ) n sub i sigma(r to the power of )]
+where f sub Hxc, sigma sigma^ to the power of LSD(r, r to the power of )=delta(E sub H+E sub xc to the power of LSD) / delta rho sub sigma(r) delta rho sub sigma to the power of (r to the power of ) is the second-order functional derivative of the LSD interaction energy. Focusing then on the cross derivatives, we obtain
+the product of sub j sigma to the power of to the power of u, LSDdelta rho sub i sigma(r)=, where v sub xc, sigma to the power of LSD(r ;[rho-rho sub j sigma to the power of ])-v sub xc, sigma to the power of LSD(r ;[rho]) ; or, where +int d r to the power of f sub xc, sigma sigma^ to the power of LSD(r, r to the power of ;[rho sub j sigma^ to the power of ref]) rho sub j sigma to the power of (r to the power of )
+where f sub xc, sigma sigma^ to the power of LSD(r, r to the power of ) is the exchange-correlation contribution to f sub Hxc, sigma sigma^ to the power of LSD(r, r to the power of ). As a final result, the orbital-dependent NK Hamiltonian can be cast into the form
+h hat sub i sigma to the power of NK= to the power of LSD[rho sub i sigma to the power of ref]+w hat sub ref, i sigma to the power of LSD+w hat sub xd, i sigma to the power of LSD,
+where w sub xd, i sigma to the power of LSD stands for the cross-derivative potential
+w sub xd, i sigma to the power of LSD(r)=the sum of sub j sigma to the power of not equal to i sigma the product of sub j sigma to the power of to the power of u, LSDdelta rho sub i sigma(r)
+
+In a nutshell, the NK Hamiltonian consists of the uncorrected LSD Hamiltonian calculated at the reference density to the power of LSD[rho sub i sigma to the power of ref ] with the addition of two variational potentials. The first additional term w hat sub ref, i sigma to the power of LSD results from the variation of the reference density as a function of rho sub i sigma while the second term w hat sub xd, i sigma to the power of LSD springs from the cross dependence of the nonKoopmans corrective terms. The effect of the w hat sub ref, i sigma to the power of LSD and w hat sub xd, i sigma to the power of LSD contributions that arise as byproducts of variationality is analyzed in the next section
+
+
+D. COMPARATIVE ASSESSMENT
+
+In this section, we assess the performance of the NK selfinteraction correction, particularly focusing on the effect of variational terms on the accuracy of NK orbital predictions-i.e., on the cancellation of the unrelaxed frozen-orbital self-interaction measure Pi sub i sigma to the power of u, NK(f). One simple and probably the most direct way to evaluate the influence of w hat sub ref, i sigma to the power of LSD and w hat sub xd, i sigma to the power of LSD is to introduce a nonvariational orbitalenergy scheme, the NK sub 0 method, that consists of freezing the dependence of the reference transition-state densities and the cross dependence of corrective energy terms, thereby eliminating w hat sub ref, i sigma to the power of LSD and w hat sub xd, i sigma to the power of LSD contributions to the effective potential. Computed NK and NK sub 0 orbital levels can then be compared for the direct assessment of w hat sub ref, i sigma to the power of LSD and w hat sub xd, i sigma to the power of LSD errors. Explicitly, the NK sub 0 Hamiltonian can be written as
+h hat sub i sigma to the power of NK sub 0= to the power of LSD[rho]+. the product from i sigma to u, LSD ofdelta rho hat sub i sigma|_rho sub i sigma to the power of ref=cst, ; or h hat sub i sigma to the power of NK sub 0= to the power of LSD[rho sub i sigma to the power of ref]
+
+In the NK sub 0 optimization scheme, the Hamiltonian given by the equation is employed to propagate orbital degrees of freedom at fixed rho sub i sigma to the power of ref. Reference transition-state densities are then updated according to the equation. The procedure is iterated until self-consistency
+
+Due to the loss of variationality, the obvious practical limitation of the nonvariational NK sub 0 orbital-energy method is that it cannot provide total energies and interatomic forces. However, NK sub 0 is of great utility in evaluating the intrinsic performance of the NK correction. In itself, the NK sub 0 formulation is also useful in determining orbital energy properties that are particularly affected by w hat sub ref, i sigma to the power of LSD and w hat sub xd, i sigma to the power of LSD errors
+
+Focusing now on computational predictions, the occupation dependencies of the LSD, HF, PZ, and NK unrelaxed orbital energies
+epsilon sub i sigma to the power of u(f)=.d E sub i sigma to the power of u(f to the power of ) over d f to the power of |_f to the power of =f
+of the highest atomic orbital of carbon are depicted in. The salient feature of the LSD graph is the large variation of the orbital energy from -19.40 to -6.15 eV, reflecting the strong nonlinearity of the corresponding unrelaxed ionization curve. The PZ variation is found to be twice lower than for LSD, confirming the trends observed in the section A. In contrast, the HF unrelaxed ionization curve exhibits a perfectly linear behavior (i.e., the unrelaxed orbital energy remains constant). This trend is closely reproduced by the NK functional []; on the scale of LSD residual nonKoopmans errors, the eye can barely distinguish any devia- tion of the NK unrelaxed orbital energies as a function of f sub i sigma regardless of the value of the reference occupation
+
+The above observation is due to the fact that the variational contribution w hat sub ref, i sigma to the power of LSD affects the orbital energy epsilon sub i sigma to the power of NK indirectly, i.e., only through the self-consistent response of the orbital densities since angle bracketpsi sub i sigma| w hat sub ref, i sigma to the power of LSD|psi sub i sigma angle bracket=0 at self-consistency. Furthermore, a Taylor series expansion of w hat sub xd, i sigma to the power of LSD reveals that angle bracketpsi sub i sigma| w hat sub xd, i sigma to the power of LSD|psi sub i sigma angle bracket does not cause notable departure from the linear Koopmans' behavior. In quantitative terms, the dominant term in the expansion of the residual NK self-interaction error is of the fourth order in orbital densities
+Pi sub i sigma to the power of u, NK(f)=, where 1 over 4 the sum of sub j sigma to the power of not equal to i sigma f sub j sigma to the power of (2 f sub ref-f sub j sigma to the power of )(2 f-f sub i sigma) f sub i sigma ; or, where times int d r sub 1234 f sub xc, sigma sigma to the power of sigma^ sigma to the power of (4), LSD(r sub 1234 ;[rho sub j sigma^ to the power of ref]) ; or, where times n sub i sigma(r sub 1) n sub j sigma to the power of (r sub 2) n sub j sigma to the power of (r sub 3) n sub i sigma(r sub 4)+dots
+(where f sub xc, sigma sub 12 dots n to the power of (n), LSD(r sub 12 dots n) denotes the nth order functional derivative of the LSD exchange-correlation energy), whereas the PZ correction is found to be less accurate in minimizing the self-interaction measure by one order of precision
+
+Pi sub i sigma to the power of u, PZ(f)=, where 1 over 2 the sum of sub j not equal to i(2 f-f sub i sigma) f sub i sigma f sub j sigma int d r sub 123 ; or, where times f sub xc, sigma sigma sigma to the power of (3), LSD(r sub 123 ;[rho-rho sub i sigma]) n sub i sigma(r sub 1) n sub i sigma(r sub 2) n sub j sigma(r sub 3) ; or, where +dots
+
+Despite the very good accuracy of the NK correction, direct confrontation with NK sub 0 results-for which the nonKoopmans measure Pi sub i sigma to the power of u, NK sub 0(f) the equation is obviously canceled for any value of f-reveals that NK tends to underestimate orbital energies with deviations of 0.5-1.5 eV that gradually increase with f sub ref [ and 4(b)]. The practical consequences of this observation will be discussed in the section As a conclusion of this preliminary performance evaluation, the NK frozen-orbital correction results in a considerable reduction of residual errors Pi sub i sigma to the power of u, NK(f), bringing densityfunctional approximations in nearly exact agreement with the frozen-orbital linear trend while exhibiting a slight tendency to underestimate orbital energies. In the next sections, we present an extension of the NK correction beyond the frozenorbital paradigm
+
+
+E. SCREENED NON-KOOPMANS CORRECTION
+
+Having derived and examined the bare non-Koopmans frozen-orbital correction, we now turn to the analysis of selfinteraction for relaxed orbitals. The effect of the NK correction on relaxed partial ionization energies for carbon is illustrated in. The first important observation is that the NK correction decreases the unphysical convexity of E sub N, reducing the unphysical discrepancy ( A sub N-1-I sub N ) by a factor of 6 regardless of the reference occupation f sub ref
+
+The second notable feature is the fact that the NK correction reverts the convexity trend (i.e., I sub N to the power of NK>A sub N-1 to the power of NK ), transform-
+ing the convex dependence of E sub N into a piecewise concave curve. In fact, bearing in mind that relaxation contributions to E sub N are always negative, it is relatively straightforward to show that any functional that satisfies the restricted Koopmans' condition the equation is piecewise concave. Consequently, in contrast to the alpha PZ functional introduced in the section A, there always exists a value of the coefficient alpha to the power of NK ( 0 less than or equal to alpha to the power of NK less than or equal to 1 ) for which the alpha NK functional
+E to the power of alpha NK=E to the power of LSD+alpha to the power of NK(E to the power of NK-E to the power of LSD)
+restores the agreement between A sub N-1 to the power of alpha NK and I sub N to the power of alpha NK. At this crossing point, the alpha NK relaxed ionization curve is in close agreement with the exact linear trend described by the generalized Koopmans' condition (see the section A)
+
+Making the approximation that ionization energies vary linearly with alpha to the power of NK, the value of the coefficient for which the crossing A sub N-1 to the power of alpha NK=I sub N to the power of alpha NK occurs can be estimated as
+alpha to the power of NK approximately equals A sub N-1 to the power of LSD-I sub N to the power of LSD over (A sub N-1 to the power of LSD-I sub N to the power of LD)-(A sub N-1 to the power of NK-I sub N to the power of NK)
+
+This initial estimate can then be refined using the secantmethod recursion
+alpha sub n+1=alpha sub n+(1-alpha sub n)(A sub N-1 to the power of alpha sub n NK-I sub N to the power of alpha sub n NK) over (A sub N-1 to the power of alpha sub n NK-I sub N to the power of alpha sub n NK)-(A sub N-1 to the power of NK-I sub N to the power of NK)
+
+In practice, it is observed that only one or two iterations are sufficient to determine the value of the coefficient alpha to the power of NK =the limit of _n approaches infty alpha sub n and bring the difference A sub N-1 to the power of alpha NK-I sub N to the power of alpha NK below 0.2 eV
+
+Physically, the coefficient alpha to the power of NK is directly related to the magnitude of orbital relaxation upon electron removal. Indeed, alpha to the power of NK can be viewed as a screening coefficient whose value is close to 1 for weakly relaxing ionized systems (since E sub N to the power of NK is already piecewise linear in the absence of orbital relaxation) and is found to be small when relaxation is strong (see the section A). The corrective factor alpha to the power of NK introduced here is thus endowed with a clear physical interpretation. As a final note, it should be emphasized that we have adopted here a simple picture of orbital relaxation through the coefficient alpha to the power of NK, which can be viewed as a uniform and isotropic screening factor. More elaborate screening functions could be employed (at the price of computational complexity). Such accurate screening approaches provide promising extensions of the alpha NK method and represent an interesting subject for future studies
+
+
+F. REFERENCE TRANSITION-STATE OCCUPATION
+
+We now proceed to examine the influence of the reference occupation on the accuracy of calculated total electron removal energies. To this end, we compare the average of the alpha NK differential electron removal energies (that closely approximates the total ionization potential) of carbon for f sub ref different from and equal to 1 over 2 in and 5(b), respectively. In the former case, the diagram indicates that the average
+1 over 2(A sub N-1 to the power of alpha NK+I sub N to the power of alpha NK) approximately equals I sub N to the power of alpha NK
+deviates significantly from its LSD counterpart, whereas such deviations do not occur in the case f sub ref =1 over 2. In fact, from Eqs. (2), (28), and (42), it can be shown that
+I sub N to the power of alpha NK(f sub ref) approximately equals I sub N to the power of LSD-alpha to the power of NK Pi sub N to the power of u, LSD(f sub ref)
+(neglecting orbital reconfiguration). Then, substituting the (restricted) Slater's approximation Delta E sub i sigma to the power of u, LSD approximately equals-epsilon sub i sigma to the power of u, LSD(f sub i sigma=1 over 2)
+into the definition of the non-Koopmans energy contributions the equation, one can demonstrate that
+Pi sub N to the power of u, LSD(f sub ref=1 over 2) approximately equals 0
+to arrive at the relation
+I sub N to the power of alpha NK(f sub ref=1 over 2) approximately equals I sub N to the power of LSD
+
+This result explains the accuracy of the alpha NK correction in predicting total electron removal energies with the reference occupation f sub ref =1 over 2
+
+It should be noted that in the particular case of oneelectron systems, f sub ref =1 over 2 is not the only possible choice for the reference occupation. Indeed, due to the fact the Hartree and exchange-correlation potentials vanish for empty solitary orbitals, the approximation
+Delta E to the power of u, LSD approximately equals-epsilon to the power of u, LSD(f=0)
+also holds; hence, the solution f sub ref =0 is equally valid. In fact, for one-electron systems, f sub ref =0 leads to the exact oneelectron Hamiltonian and the exact solution to the oneelectron Schrodinger problem. As an alternative to transition-state arguments, the value of f sub ref can be justified by inspecting the sum rule satisfied by the exchange-correlation hole ( xc hole). The xc hole h sub xc is defined by the relation
+E sub xc=1 over 2 int d r d r to the power of rho(r) h sub xc(r, r to the power of ) over |r-r to the power of |
+and can be explicitly written through the adiabatic connection formalism as
+rho(r) h sub xc(r, r to the power of )= angle bracketrho hat sub 2(r, r to the power of ) angle bracket sub lambda-rho(r) rho(r to the power of )
+with
+angle bracketrho hat sub 2(r, r to the power of ) angle bracket sub lambda=int sub 0 to the power of 1 d lambda angle bracketPsi sub lambda| rho hat sub 2(r, r to the power of )|Psi sub lambda angle bracket
+
+In the equation, rho hat sub 2(r, r to the power of )= to the power of (r) to the power of (r to the power of ) psi hat(r to the power of ) psi hat(r) denotes the pair density operator and Psi sub lambda stands for the ground state of a fictitious system where the Coulomb interaction is scaled down by lambda and the effective local single-electron potential v sub lambda
+
+is added to the Hamiltonian to keep the ground-state density constant with respect to lambda
+
+By definition, the exact xc hole corresponding to a system with a fractional number of electrons N+omega, satisfies the sum rule
+int d r to the power of h sub xc(r, r to the power of )=-1+omega(1-omega) int sub 0 to the power of 1 d lambda rho sub lambda, N+1(r)-rho sub lambda, N(r) over rho(r)
+where the ground-state density rho sub lambda, M of the system with M =N and M=N+1 electrons depends on lambda due to the fact that M differs from N+omega. It is important to note that the exact xc hole h sub xc integrates to -1 only for integer electron numbers at variance with the LSD xc hole h sub xc to the power of LSD, which integrates to -1 irrespective of the number of electrons
+
+Turning now to the alpha NK xc hole h sub xc to the power of alpha NK, it is possible to derive a relation similar to the equation
+int d r to the power of h sub xc to the power of alpha NK(r, r to the power of )=-1+alpha to the power of NK the sum of sub i sigma f sub i sigma(2 f sub ref-f sub i sigma) n sub i sigma(r) over rho(r)
+for N greater than or equal to 1 (the detailed derivation is presented in the Appendix). It is then clear that the occupation f sub ref =1 over 2 allows to satisfy the xc-hole sum rule exactly for integer number of electrons, and at least approximately for fractional numbers. (Note that in the case N less than or equal to 1, the value f sub ref =0 corresponds also to the exact sum rule.) For PZ, it has been argued that the enforcement of a similar sum rule is critical to the quality of the self-interaction correction. As a result, the explicit expression of the screened alpha NK functional with f sub ref =1 over 2 reads
+E to the power of alpha NK=, where E to the power of LSD+alpha to the power of NK the sum of sub i sigma[f sub i sigma(1-f sub i sigma) E sub H[n sub i sigma]+E sub xc to the power of LSD[rho-rho sub i sigma]. ; or, where .+int d r v sub xc, sigma to the power of LSD(r ;[rho+(1 over 2-f sub i sigma) n sub i sigma]) rho sub i sigma(r)-E sub xc to the power of LSD[rho]]
+
+In the next section, we assess the predictive accuracy of the
+alpha NK functional given by the equation, first focusing on atoms then extending applications to molecular systems
+
+
+III. APPLICATIONS
+
+
+A. ATOMIC IONIZATION
+
+In order to probe the performance of the alpha NK functional, we calculate the electron removal energies of a complete range of atomic elements, from hydrogen to xenon, using the all-electron LD1 code of the quantum-espresso distribution. (Note that the atomic calculations that we report here do not account for relativistic effects; we have verified that the inclusion of scalar-relativistic contributions results in marginal deviations of <80 meV in the absolute precision of alpha NK differential electron removal energies.) The LD1 code proceeds by iterative integration of the spherically symmetric electronic-structure problem on logarithmic grids. The validity of this integration procedure, also employed by Perdew and Zunger in their original work, has been extensively discussed and carefully verified by Goedecker and Umrigar. More recently, Stengel and Spaldin have shown that the spherical approximation is actually required to prevent the appearance of unphysical hybrid states in the electronic structure of isolated atoms and predict physical atomic electron removal energies within orbitaldependent self-interaction corrections
+
+We first compute the screening coefficient alpha to the power of NK the equations for the elements of the five first periodic rows based on the electronic configurations tabulated in Ref. (with the exception of Ni for which we used the slightly unfavored 4 s 3 d configuration instead of 4 s 3 d that overestimates the experimental ionization potential by more than 1 eV ). The calculated alpha to the power of NK are reported in. The graph confirms that the screening coefficient varies in a narrow range. Not unexpectedly, the value of alpha to the power of NK is found to be maximal for the elements whose outermost electronic shell contains a single electron, such as hydrogen for which alpha to the power of NK =1 and alkali metals, e.g., alpha to the power of NK(Na)=0.99. In contrast, the coefficient alpha to the power of NK saturates to low values for filled shell elements, namely, noble gases, e.g., alpha to the power of NK(He)=0.66, alkaline earth metals, e.g., alpha to the power of NK(Be)=0.72, and filled shell transition metals, e.g., alpha to the power of NK(Pd)=0.69
+
+After calculating atomic screening coefficients, we compare alpha NK differential electron affinity predictions with LSD and experiment in. The comparison demonstrates the predictive ability of the alpha NK method, which brings partial electron removal energies A sub N-1 in very close agreement with experimental total electron removal energies A sub N-1 to the power of exponential, whereas LSD is found to considerably overestimate A sub N-1. In quantitative terms, the differential LSD energy A sub N-1 to the power of LSD is overestimated by more than 4 eV with a standard deviation of 1.85 eV []. Comparable deviations are obtained with the PZ self-interaction correction. The HF energy A sub N-1 to the power of HF are instead underestimated by a smaller margin of 1.48 eV. The alpha NK correction results in substantial improvement in the calculation of partial electron removal energies, reducing the error to 0.31 eV. Here, it is quite interesting to note that the alpha NK variational contributions counterbalance the slight tendency of the alpha NK sub 0 correction to underestimate electron removal energies within LSD
+
+We now examine partial ionization potential predictions (. A marked difference with the above electron affinity results is the enhanced accuracy of the HF and PZ theories. The improved performance in predicting atomic ionization potentials results from the fact that orbital relaxation compensates the absence of correlation contributions in HF and cancels residual non-Koopmans errors in PZ. Nevertheless, even with beneficial error cancellation in favor of HF and PZ, the alpha NK deviation is still the lowest, approximately equal to the PZ mean absolute error of 0.34 eV []
+
+The precision of alpha NK differential ionization energies reflects the intrinsic accuracy of the underlying LSD total energy functional in reproducing subtle atomic ionization trends that are difficult to describe with, e.g., semiempirical approximations. To complement these observations, the full dependence of the LSD, PZ, and alpha NK relaxed energies epsilon sub 2 p of the highest occupied atomic orbital of carbon as a function of its occupation is depicted in. Confronting the LSD and PZ graphs with those presented in, it is seen that orbital relaxation causes a non-negligible decrease in the unphysical shift epsilon sub 2 p(1)-epsilon sub 2 p(0) of 1.5 eV for both functionals. Additionally, the PZ orbital energy epsilon sub 2 p to the power of PZ becomes less curved at higher occupations, confirming that orbital relaxation enhances the performance of the PZ correction. Nevertheless, the inflexion of the curve remains important in the
+vicinity of f sub 2 p=0 due to the fact that the PZ correction leaves the energy of the empty state almost unchanged. We observe that this unphysical trend is almost completely removed by the alpha NK correction, clearly showing that the screened alpha NK method is apt at imposing the generalized Koopmans' condition for any fractional value of f sub 2 p
+
+The above comparisons demonstrate the predictive performance of the non-Koopmans method in correcting atomic differential electron affinities and first ionization potentials, placing A sub N-1 and I sub N predictions on the same level of accuracy with respect to experiment. The fact that alpha NK improves A sub N-1 and I sub N with the same precision ensures the accuracy of non-Koopmans total energy differences and related equilibrium properties. The results presented in the next sections provide further support to this conclusion
+
+
+B. MOLECULAR IONIZATION
+
+In this section, we focus on the study of molecular systems. For this purpose, we have implemented the HF, PZ, and alpha NK methods in the plane-wave pseudopotential Car-Parrinello (CP) code of the quantum-espresso distribution. In this code, orbital optimization proceeds via fictitious Newtonian damped electronic dynamics
+
+The main difficulty in the CP implementation of the HF, PZ, and alpha NK functionals is the correction of periodic-image errors that arise from the use of the supercell approximation. Such numerical errors preclude the accurate evaluation of exchange terms and orbital electrostatic potentials. To eliminate periodic-image errors in the plane-wave evaluation of exchange and electrostatic two-electron integrals, we employ countercharge correction techniques. In addition to this difficulty, explicit orthogonality constraints must be considered for the accurate calculation of the gradient of the orbitaldependent PZ and alpha NK functionals. To incorporate these additional constraints, we use the efficient iterative orthogonalization cycle implemented in the original CP code. In terms of computational performance, the cost of alpha NK calculations is here only 40 % higher that that of PZ and lower than that of HF
+
+In, we compare LSD, HF, PZ, and NK partial electron removal energy predictions for a representative set of molecules. In each case, molecular geometries are fully relaxed (the accuracy of equilibrium geometry predictions will be examined in the section C). To perform our calculations, we employ LSD norm-conserving pseudopotentials to the power of 60 with an energy cutoff of 60 Ry for the plane-wave expansion of the electronic wave functions. With this calculation parameter, we verify that A sub N-1 and I sub N are converged to within less than 50 meV
+
+It is frequently argued that substituting LSD pseudopotentials for their HF, PZ, and NK counterparts has minor effect on the predicted energy differences. Comparing our pseudopotential calculations with all-electron atomic results (see the section A), we actually found that the use of LSD pseudopotentials yields HF, PZ, and NK electron removal energies with a typical error of 0.1-0.2 eV. However, since these moderate deviations affect HF, PZ, and NK predictions in identical manner, the pseudopotential substitution does not alter the validity of the present comparative analysis. As expected, one conspicuous feature in is the poor performance of LSD that predicts molecular partial electron removal energies with an average error of plus or minus 40 %. As was the case for atoms, the PZ self-interaction correction reduces the error in predicting I sub N to less than 14 %, which corresponds to an average deviation of 1.68 eV, whereas A sub N-1 predictions are not improved. In comparison, alpha NK partial ionization energies are predicted with a remarkable precision of 0.50 eV(4.1 %) and 0.58 eV(4.8 %) for A sub N-1 and I sub N, respectively. The alpha NK accuracy in predicting molecular vertical ionization energies compares favorably (arguably, even more accurately) with that of recently published fully self-consistent GW many-body perturbation theory calculations
+
+
+C. EQUILIBRIUM STRUCTURAL PROPERTIES
+
+After analyzing partial electron removal energies, we now report on the accuracy of alpha NK equilibrium geometry calculations. We compare LSD, PZ, and alpha NK structural predictions to experimental bond lengths in and we present LSD, HF, PZ, and alpha NK error bars in. The first important observation is the very good accuracy of LSD predictions with a mean absolute relative error of 1.1 % for the seventeen molecules listed in. PZ bond lengths are instead sensibly underestimated with a mean uncertainty of
+
+2.8 %. In contrast with PZ calculations, alpha NK results deviate from experiment by a relative error margin of 0.8 %, which is lower than that of LSD, demonstrating that the alpha NK selfinteraction correction does not deteriorate and even improves LSD structural predictions, at variance with the conventional PZ self-interaction correction
+
+These results illustrate the tendency of PZ to overbind molecular structures, and confirm the systematic improvement brought about by the alpha NK correction. The promising potential of the alpha NK correction in predicting other the rmodynamical properties (e.g., dissociation energies and vibrational frequencies) will be critically explored in a separate study
+
+
+D. PHOTOEMISSION ENERGIES
+
+Having validated the non-Koopmans self-interaction correction for the calculation of electron removal energies and equilibrium structures, we now evaluate the performance of the alpha NK and alpha NK sub 0 methods in predicting photoemission energies, for which LSD and GGAs exhibit notable failures
+
+From the theoretical point of view, the very poor performance of LSD and GGA is expected; Kohn-Sham densityfunctional theory eigenvalues are not meant to predict excited-state properties. In practice, total electron removal energies computed from constrained densityfunctional calculations ( Delta sub c SCF ) are typically found to be in good agreement with experiment. This level of accuracy suggests that orbital-dependent self-interaction corrected functionals can provide orbital energies in accordance with spectroscopic results. This expectation is confirmed by PZ photoemission predictions for neon, argon, and krypton that we reproduce here using the LD1 code ()
+
+Nevertheless, similarly to the trend observed in the section B, the predictive ability of PZ deteriorates in the case of molecular photoionization; this is at variance with the alpha NK method. To illustrate this fact, we compare LSD, HF, PZ, and non-Koopmans predictions for the photoemission spectrum (PES) of benzene in and fullerene in. In the molecular photoemission calculations, we use the CP code with the computational procedure described in the section B. We employ fully relaxed geometries for benzene and the LSD atomic structure of C sub 60, which is found to be in excellent agreement with the NMR experimental geometry
+
+Focusing first on benzene, we observe that LSD underestimates electron binding energies with errors as large as 4.35 eV for low-lying states. In contrast to LSD, the HF theory provides overestimated photoemission energies with absolute deviations that increase gradually from 0.12 to 3.19 eV when approaching the bottom of the PES. Similar trends are observed for PZ with the difference that the errors do not systematically increase with increasing photoemission energies, leading in particular to the incorrect ordering of the e sub 2 g and a sub 2 u levels. In contrast, alpha NK restores the correct relative peak positions and yields slightly overestimated electron binding energies with an absolute precision of 4.9 %. The slight tendency of alpha NK to overestimate electron binding energies is here again due to the influence of variational contributions, as directly confirmed by the performance of the alpha NK sub 0 orbital-energy method, which predicts photoemission energies in remarkable agreement with experiment
+
+
+IV. SUMMARY AND OUTLOOK
+
+The theory developed here represents a significant step in the correction of electron self-interaction in electronicstructure theories. Nevertheless, interesting problems are left open. One central question is that similarly to the PZ approach, the alpha NK method leads to an orbital-dependent Hamiltonian, although it is always possible in principle to derive a consistent density-dependent formulation using, e.g., optimized effective potential mappings. It is a long held tenet that the orbital dependence of self-interaction functionals and the subsequent loss of invariance with respect to unitary transformation of the one-body density matrix precludes applications to periodic systems (e.g., conjugate polymers and crystalline materials). In future studies, we will explore solutions to this central conceptual difficulty without resorting to density-dependent unitary invariant mappings
+
+
+ACKNOWLEDGMENTS
+
+The authors are indebted to X. Qian, N. Laachi, S. de Gironcoli, E. Cances, and T. Korzdorfer for helpful suggestions and fruitful comments. The computations in this work have been performed using the QUANTUM-ESPRESSO package ( (the reference) and computational resources offered by the Minnesota Supercomputing Institute and DOE under Grant DE-FG02-05ER46253. I.D. and N.M. acknowledge support from MURI under Grant No. DAAD 19-03-1-016. I.D., Y.L., and M.C. acknowledge support from the Grant in Aid of the University of Minnesota and from Grant ANR 06-CIS6-014 of the French National Agency of Research. M.C. acknowledges partial support from NSF under Grant No. EAR-0810272 and from the Abu Dhabi-Minnesota Institute for Research Excellence (ADMIRE). N.M., A.F., and N.P. acknowledge support from
+
+DOE under Grants No. SciDAC DE-FC02-06ER25794 and No. DE-FG02-05ER15728, and MIT-ISN
+
+
+APPENDIX: SCREENED NON-KOOPMANS EXCHANGE-CORRELATION HOLE SUM RULE
+
+In this appendix, we derive the explicit expression of the alpha NK xc hole. Starting from the relation
+E to the power of alpha NK=, where E to the power of LSD+alpha to the power of NK the sum of sub i sigma sub Hxc to the power of LSD[rho-rho sub i sigma]-E sub Hxc to the power of LSD[rho]. ; or, where .+int d r rho sub i sigma(r) v sub Hxc, sigma to the power of LSD(r ;[rho sub i sigma to the power of ref])
+and from the definition of the xc hole the equation, the contributions to the total alpha NK xc hole arising from the three summation terms in Eq. (A1) can be worked out. Those terms will be labeled h sub xc, i sigma to the power of (a), h sub xc, i sigma to the power of (b), and h sub xc, i sigma to the power of (c), respectively. Focusing on the first term, it is straightforward to obtain
+h sub xc, i sigma to the power of (a)(r, r to the power of )=, where rho(r)-rho sub i sigma(r) over rho(r)[rho(r to the power of )-rho sub i sigma(r to the power of )] ; or, where +rho(r)-rho sub i sigma(r) over rho(r) h sub xc to the power of LSD(r, r to the power of ;[rho-rho sub i sigma])
+
+Turning to the second term and including the appropriate sign, one obtains
+h sub xc, i sigma to the power of (b)(r, r to the power of )=-rho(r to the power of )-h sub xc to the power of LSD(r, r to the power of ;[rho])
+
+The third term is more complicated to derive since its expression is based on the exchange-correlation potential. Making use of the relation
+v sub xc, sigma(r ;[rho])=, where 1 over 2 int d r to the power of h sub xc(r, r to the power of ;[rho]) over |r-r to the power of | ; or, where +1 over 2 int d r to the power of d r to the power of rho(r to the power of ) over |r to the power of -r to the power of | delta h sub xc(r to the power of, r to the power of ;[rho]) over delta rho sub sigma(r)
+the expression for h sub xc, i sigma to the power of (c) becomes
+h sub xc, i sigma to the power of (c)(r, r to the power of )=, where 2 rho sub i sigma(r) over rho(r) rho sub i sigma to the power of ref(r to the power of )+rho sub i sigma(r) over rho(r) h sub xc to the power of LSD(r, r to the power of ;[rho sub i sigma to the power of ref]) ; or, where +rho sub i sigma to the power of ref(r) over rho(r) int d r to the power of rho sub i sigma(r to the power of ) delta h sub xc to the power of LSD(r, r to the power of ;[rho sub i sigma to the power of ref]) over delta rho sub sigma(r to the power of )
+
+Regrouping all the terms, the expression for the exchangecorrelation hole of the alpha NK functional can be written as
+h sub xc to the power of alpha NK(r, r to the power of )=, where h sub xc to the power of LSD(r, r to the power of ;[rho])+alpha to the power of NK over rho(r) ; or, where times the sum of sub i sigma sub i sigma to the power of ref(r) int d r to the power of rho sub i sigma(r to the power of ) delta h sub xc to the power of LSD(r, r to the power of ;[rho sub i sigma to the power of ref]) over delta rho sub sigma(r to the power of ). ; or, where +f sub i sigma(2 f sub ref-f sub i sigma) n sub i sigma(r) n sub i sigma(r to the power of ) ; or, where +h sub xc to the power of LSD(r, r to the power of ;[rho-rho sub i sigma])(rho(r)-rho sub i sigma(r)) ; or, where .-h sub xc to the power of LSD(r, r to the power of ;[rho]) rho(r)+h sub xc to the power of LSD(r, r to the power of ;[rho sub i sigma to the power of ref]) rho sub i sigma(r)
+
