@@ -42,18 +42,18 @@ Section 9: Test on example scientific sentences
 # Install system-level dependencies first
 # eSpeak-NG is a rule-based speech synthesizer that can output IPA.
 # It handles scientific/technical words better than purely learned G2P systems.
-!apt-get install -y espeak-ng espeak-ng-data libespeak-ng-dev
+#!apt-get install -y espeak-ng espeak-ng-data libespeak-ng-dev
 
 # Python packages
-!pip install -q \
-    phonemizer \
-    datasets \
-    arxiv \
-    nltk \
-    jiwer \
-    tqdm \
-    matplotlib \
-    pandas
+#!pip install -q \
+#    phonemizer \
+#    datasets \
+#    arxiv \
+#    nltk \
+#    jiwer \
+#    tqdm \
+#    matplotlib \
+#    pandas
 
 # phonemizer wraps eSpeak-NG in a clean Python API
 # datasets gives us easy access to HuggingFace datasets (we use it for LibriTTS text)
@@ -68,7 +68,7 @@ print("✓ All dependencies installed")
 import os, json, re, math, random, time
 from pathlib import Path
 from collections import Counter
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 import torch
 import torch.nn as nn
@@ -218,28 +218,46 @@ print(f"✓ Seed vocabulary size: {len(ALL_TERMS)} unique terms")
 
 import arxiv
 
-def fetch_arxiv_terms(queries, max_results_per_query=50, min_word_length=9):
-    """Fetch arXiv abstracts and extract long, unusual words as scientific term candidates."""
+def fetch_arxiv_terms(queries, max_results_per_query=50, min_word_length=9,
+                      per_query_timeout=30):
+    """Fetch arXiv abstracts and extract long, unusual words as scientific term candidates.
+
+    per_query_timeout: seconds to wait per query before giving up (default 30).
+    If a query times out or fails it is skipped — the seed vocabulary is used instead.
+    """
+    import concurrent.futures
+
     candidate_terms = set()
     abstracts = []
 
+    def _fetch_one(query):
+        """Fetch abstracts for a single query. Runs in a thread so it can be timed out."""
+        results = []
+        client = arxiv.Client()
+        search = arxiv.Search(
+            query=query,
+            max_results=max_results_per_query,
+            sort_by=arxiv.SortCriterion.Relevance,
+        )
+        for result in client.results(search):
+            results.append(result.summary)
+        return results
+
     for query in queries:
+        print(f"  Querying arXiv: '{query}' ...", end="", flush=True)
         try:
-            client = arxiv.Client()
-            search = arxiv.Search(
-                query=query,
-                max_results=max_results_per_query,
-                sort_by=arxiv.SortCriterion.Relevance
-            )
-            for result in client.results(search):
-                abstracts.append(result.summary)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                future = ex.submit(_fetch_one, query)
+                results = future.result(timeout=per_query_timeout)
+            abstracts.extend(results)
+            print(f" {len(results)} abstracts")
+        except concurrent.futures.TimeoutError:
+            print(f" timed out after {per_query_timeout}s — skipping")
         except Exception as e:
-            print(f"  Warning: could not fetch '{query}': {e}")
+            print(f" failed ({e}) — skipping")
 
-    print(f"  Fetched {len(abstracts)} abstracts")
+    print(f"  Fetched {len(abstracts)} abstracts total")
 
-    # Extract words: only alphabetic, longer than min_word_length
-    # This filters out common English words and catches technical terms
     for abstract in abstracts:
         words = re.findall(r'[a-zA-Z]+', abstract)
         for w in words:
@@ -501,6 +519,10 @@ if len(all_sentences) > 0:
     print(f"✓ arXiv sentences after filter: {len(all_sentences)}")
 else:
     print("❌ Could not retrieve any sentences — check your internet connection")
+
+print("\nBuilding scientific fine-tuning pairs from arXiv...")
+combined_dict = {**cmu_ipa_dict, **sci_dictionary}
+# ... rest of the cell continues as before
 
 print("\nBuilding scientific fine-tuning pairs from arXiv...")
 combined_dict = {**cmu_ipa_dict, **sci_dictionary}
@@ -856,24 +878,26 @@ print("✓ Training functions defined")
 PRETRAIN_EPOCHS = 70  # increase to 100 for full replication
 Path('checkpoints').mkdir(exist_ok=True)
 
-print(f"Pretraining for {PRETRAIN_EPOCHS} epochs on CMUDict...")
-pretrain_history = train_model(
-    model,
-    pre_train_loader,
-    pre_val_loader,
-    n_epochs=PRETRAIN_EPOCHS,
-    save_path='checkpoints/pretrained_cmudict.pt'
-)
-
-# Plot training curves
-plt.figure(figsize=(8, 4))
-plt.plot(pretrain_history['train'], label='Train loss')
-plt.plot(pretrain_history['val'],   label='Val loss')
-plt.xlabel('Epoch'); plt.ylabel('Cross-entropy loss')
-plt.title('Pretraining on CMUDict (General English)')
-plt.legend(); plt.tight_layout(); plt.savefig('pretrain_curve.png', dpi=120)
-plt.show()
-print("✓ Pretraining complete. Best checkpoint: checkpoints/pretrained_cmudict.pt")
+if os.path.exists('checkpoints/pretrained_cmudict.pt'):
+    print("✓ Pretrained checkpoint found — skipping pretraining.")
+    model.load_state_dict(torch.load('checkpoints/pretrained_cmudict.pt', map_location=DEVICE))
+else:
+    print(f"Pretraining for {PRETRAIN_EPOCHS} epochs on CMUDict...")
+    pretrain_history = train_model(
+        model,
+        pre_train_loader,
+        pre_val_loader,
+        n_epochs=PRETRAIN_EPOCHS,
+        save_path='checkpoints/pretrained_cmudict.pt'
+    )
+    plt.figure(figsize=(8, 4))
+    plt.plot(pretrain_history['train'], label='Train loss')
+    plt.plot(pretrain_history['val'],   label='Val loss')
+    plt.xlabel('Epoch'); plt.ylabel('Cross-entropy loss')
+    plt.title('Pretraining on CMUDict (General English)')
+    plt.legend(); plt.tight_layout(); plt.savefig('pretrain_curve.png', dpi=120)
+    plt.show()
+    print("✓ Pretraining complete. Best checkpoint: checkpoints/pretrained_cmudict.pt")
 
 """## Section 7: Fine-tune on Scientific Vocabulary
 
@@ -913,37 +937,40 @@ def prepare_for_finetuning(pretrained_path, src_vocab_size, tgt_vocab_size):
     return ft_model
 
 
-print("Loading pretrained model and preparing for fine-tuning...")
-ft_model = prepare_for_finetuning(
-    'checkpoints/pretrained_cmudict.pt',
-    src_vocab_size=len(char_vocab),
-    tgt_vocab_size=len(phoneme_vocab)
-)
-print("✓ Model ready for fine-tuning")
-
-# FINE-TUNE on scientific vocabulary
-# Paper uses 25 epochs for fine-tuning.
-
 FINETUNE_EPOCHS = 50
 
-print(f"Fine-tuning for {FINETUNE_EPOCHS} epochs on scientific vocabulary...")
-finetune_history = train_model(
-    ft_model,
-    ft_train_loader,
-    ft_val_loader,
-    n_epochs=FINETUNE_EPOCHS,
-    save_path='checkpoints/finetuned_scientific.pt',
-    lr=0.0005
-)
-
-plt.figure(figsize=(8, 4))
-plt.plot(finetune_history['train'], label='Train loss')
-plt.plot(finetune_history['val'],   label='Val loss')
-plt.xlabel('Epoch'); plt.ylabel('Cross-entropy loss')
-plt.title('Fine-tuning on Scientific Vocabulary')
-plt.legend(); plt.tight_layout(); plt.savefig('finetune_curve.png', dpi=120)
-plt.show()
-print("✓ Fine-tuning complete. Best checkpoint: checkpoints/finetuned_scientific.pt")
+if os.path.exists('checkpoints/finetuned_scientific.pt'):
+    print("✓ Fine-tuned checkpoint found — skipping fine-tuning.")
+    ft_model = G2PTransformer(
+        src_vocab_size=len(char_vocab),
+        tgt_vocab_size=len(phoneme_vocab),
+    ).to(DEVICE)
+    ft_model.load_state_dict(torch.load('checkpoints/finetuned_scientific.pt', map_location=DEVICE))
+else:
+    print("Loading pretrained model and preparing for fine-tuning...")
+    ft_model = prepare_for_finetuning(
+        'checkpoints/pretrained_cmudict.pt',
+        src_vocab_size=len(char_vocab),
+        tgt_vocab_size=len(phoneme_vocab)
+    )
+    print("✓ Model ready for fine-tuning")
+    print(f"Fine-tuning for {FINETUNE_EPOCHS} epochs on scientific vocabulary...")
+    finetune_history = train_model(
+        ft_model,
+        ft_train_loader,
+        ft_val_loader,
+        n_epochs=FINETUNE_EPOCHS,
+        save_path='checkpoints/finetuned_scientific.pt',
+        lr=0.0005
+    )
+    plt.figure(figsize=(8, 4))
+    plt.plot(finetune_history['train'], label='Train loss')
+    plt.plot(finetune_history['val'],   label='Val loss')
+    plt.xlabel('Epoch'); plt.ylabel('Cross-entropy loss')
+    plt.title('Fine-tuning on Scientific Vocabulary')
+    plt.legend(); plt.tight_layout(); plt.savefig('finetune_curve.png', dpi=120)
+    plt.show()
+    print("✓ Fine-tuning complete. Best checkpoint: checkpoints/finetuned_scientific.pt")
 
 """## Section 8: Evaluate — Phoneme Error Rate (PER)
 
@@ -1020,17 +1047,36 @@ def compute_per(model, test_pairs, char2idx, phoneme2idx, idx2phoneme, batch_siz
 
 print("✓ Evaluation functions defined")
 
+# Build CMUDict-only phoneme vocabulary so the pretrained checkpoint vocab size matches.
+# Read the actual vocab size from the checkpoint rather than hardcoding it.
+all_cmu_phonemes_set = set()
+for ipa_seq in cmu_ipa_dict.values():
+    all_cmu_phonemes_set.update(ipa_seq.split())
+
+_pretrain_ckpt = torch.load('checkpoints/pretrained_cmudict.pt', map_location=DEVICE)
+_pretrain_tgt_vocab_size = _pretrain_ckpt['tgt_embedding.weight'].shape[0]
+_n_unique = _pretrain_tgt_vocab_size - len(SPECIAL_TOKENS)
+
+sorted_cmu_phonemes = sorted(list(all_cmu_phonemes_set))
+cmu_only_phoneme_vocab = SPECIAL_TOKENS + sorted_cmu_phonemes[:_n_unique]
+cmu_only_phoneme2idx = {t: i for i, t in enumerate(cmu_only_phoneme_vocab)}
+cmu_only_idx2phoneme = {i: t for t, i in cmu_only_phoneme2idx.items()}
+
+print(f"Original unique phonemes from cmu_ipa_dict: {len(all_cmu_phonemes_set)}")
+print(f"Phoneme vocabulary size from checkpoint: {_pretrain_tgt_vocab_size}")
+assert len(cmu_only_phoneme_vocab) == _pretrain_tgt_vocab_size, \
+    f"Vocab size mismatch: built {len(cmu_only_phoneme_vocab)}, checkpoint expects {_pretrain_tgt_vocab_size}"
+
 # Load best checkpoints and evaluate both models
 
-# Instantiate a new model for evaluating the pretrained checkpoint with the correct vocab size.
-# This model's target vocabulary size should match the size during pretraining (110).
+# Instantiate a new model with the vocab size read from the checkpoint.
 pretrain_eval_model = G2PTransformer(
-    src_vocab_size=len(char_vocab), # character vocab is consistent
-    tgt_vocab_size=len(cmu_only_phoneme_vocab), # Use the CMUDict-only phoneme vocab size (110)
+    src_vocab_size=len(char_vocab),
+    tgt_vocab_size=_pretrain_tgt_vocab_size,
 ).to(DEVICE)
 
 # --- Pretrained (general English) model on scientific test set ---
-pretrain_eval_model.load_state_dict(torch.load('checkpoints/pretrained_cmudict.pt', map_location=DEVICE))
+pretrain_eval_model.load_state_dict(_pretrain_ckpt)
 print("Evaluating pretrained (CMUDict) model on scientific test set...")
 # Use the cmu_only_phoneme2idx and cmu_only_idx2phoneme for computing PER for the pretrained model.
 per_pretrain, _, _ = compute_per(pretrain_eval_model, ft_test, char2idx, cmu_only_phoneme2idx, cmu_only_idx2phoneme)
@@ -1103,28 +1149,6 @@ for sent in test_sentences:
     print(f"OUTPUT: {ipa}")
     print("-" * 70)
 
-# Build a phoneme vocabulary directly from the CMUDict IPA entries
-# This should yield the phoneme vocabulary size (110) that matches the pretrained checkpoint.
-all_cmu_phonemes_set = set()
-for ipa_seq in cmu_ipa_dict.values():
-    all_cmu_phonemes_set.update(ipa_seq.split())
-
-# The checkpoint expects a target vocabulary size of 110.
-# This means 106 unique phonemes + 4 special tokens.
-# Our current espeak-ng based cmu_ipa_dict yields 108 unique phonemes.
-# We will take the first 106 sorted phonemes from our set to match the expected size.
-sorted_cmu_phonemes = sorted(list(all_cmu_phonemes_set))
-cmu_only_phoneme_vocab = SPECIAL_TOKENS + sorted_cmu_phonemes[:106]
-
-cmu_only_phoneme2idx = {t: i for i, t in enumerate(cmu_only_phoneme_vocab)}
-cmu_only_idx2phoneme = {i: t for t, i in cmu_only_phoneme2idx.items()}
-
-print(f"Original unique phonemes from cmu_ipa_dict: {len(all_cmu_phonemes_set)}")
-print(f"Phoneme vocabulary size prepared for pretraining checkpoint: {len(cmu_only_phoneme_vocab)}")
-
-# Assert that this size matches the checkpoint's actual size (110)
-assert len(cmu_only_phoneme_vocab) == 110, f"Expected 110 phonemes for pretraining checkpoint, got {len(cmu_only_phoneme_vocab)}"
-
 # Optional: Compare fine-tuned vs pretrained on the same sentences
 # Load the pretrained model into the pretrain_eval_model instance, which has the correct vocab size.
 pretrain_eval_model.load_state_dict(torch.load('checkpoints/pretrained_cmudict.pt', map_location=DEVICE))
@@ -1166,6 +1190,77 @@ print("✓ Saved human_eval.csv — open and fill in the 'correct?' column")
 
 # Commented out IPython magic to ensure Python compatibility.
 # %pwd
+
+# ---------------------------------------------------------------------------
+# File processing: parse_pdf.py output -> IPA-annotated .txt
+# ---------------------------------------------------------------------------
+
+def process_text_file(input_path: str, output_path: str, model, sci_dict: dict,
+                      char2idx: dict, idx2phoneme: dict) -> None:
+    """
+    Read a TTS-ready plain-text file produced by parse_pdf.py, annotate
+    scientific/technical words with predicted IPA, and write to output_path.
+
+    Output format is compatible with ipa_speaker.py:
+      - Words found in the scientific dictionary get a /IPA/ suffix from the dict.
+      - Longer words (>=7 chars) not in the dict get a /IPA/ suffix from the model.
+      - Short common words are left as plain text.
+
+    Example output line:
+      The eigenvalue /aɪɡənvæljuː/ of the Hamiltonian /hæmɪltoʊniən/ is determined by
+    """
+    lines = Path(input_path).read_text(encoding='utf-8').splitlines()
+    model.eval()
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for line in lines:
+            if not line.strip():
+                f.write('\n')
+                continue
+
+            # Split into alternating word / non-word tokens to preserve punctuation/spacing
+            tokens = re.findall(r'[A-Za-z]+|[^A-Za-z]+', line)
+            out_parts = []
+
+            for tok in tokens:
+                if not tok.isalpha():
+                    out_parts.append(tok)
+                    continue
+
+                word_lower = tok.lower()
+
+                # Only annotate words that are present in the scientific dictionary.
+                # The model is used to generate the IPA for those words; words not
+                # in the dictionary are left as plain text.
+                if word_lower in sci_dict:
+                    raw = predict_sentence(model, word_lower, char2idx, idx2phoneme)
+                    ipa = ''.join(raw.split())
+                    if ipa:
+                        out_parts.append(f"/{ipa}/")
+                    else:
+                        out_parts.append(tok)
+                else:
+                    out_parts.append(tok)
+
+            f.write(''.join(out_parts) + '\n')
+
+    print(f"✓ IPA-annotated text written to: {output_path}")
+
+
+# Parse --input / --output flags if provided (use parse_known_args so the
+# notebook-style positional args from Colab do not cause errors).
+import argparse as _ap
+_p = _ap.ArgumentParser(add_help=False)
+_p.add_argument('--input',  default=None, help='Path to parse_pdf.py output .txt')
+_p.add_argument('--output', default=None, help='Path to write IPA-annotated .txt')
+_cli, _ = _p.parse_known_args()
+
+if _cli.input and _cli.output:
+    print(f"\nProcessing {_cli.input} -> {_cli.output} ...")
+    ft_model.load_state_dict(
+        torch.load('checkpoints/finetuned_scientific.pt', map_location=DEVICE))
+    process_text_file(_cli.input, _cli.output, ft_model, sci_dictionary,
+                      char2idx, idx2phoneme)
 
 """## Next Steps
 
