@@ -504,10 +504,6 @@ else:
 
 print("\nBuilding scientific fine-tuning pairs from arXiv...")
 combined_dict = {**cmu_ipa_dict, **sci_dictionary}
-# ... rest of the cell continues as before
-
-print("\nBuilding scientific fine-tuning pairs from arXiv...")
-combined_dict = {**cmu_ipa_dict, **sci_dictionary}
 sci_pairs = build_sentence_pairs(all_sentences, combined_dict, min_coverage=0.80)
 sci_words_set = set(sci_dictionary.keys())
 sci_pairs = [
