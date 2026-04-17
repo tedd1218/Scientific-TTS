@@ -875,7 +875,7 @@ print("✓ Training functions defined")
 # Paper uses 100 epochs; we use fewer here due to Colab time limits.
 # Increase PRETRAIN_EPOCHS to 100 for a more faithful replication.
 
-PRETRAIN_EPOCHS = 70  # increase to 100 for full replication
+PRETRAIN_EPOCHS = 20  # increase to 100 for full replication
 Path('checkpoints').mkdir(exist_ok=True)
 
 if os.path.exists('checkpoints/pretrained_cmudict.pt'):

@@ -306,6 +306,35 @@ def _espeak_wav(text: str, wav_path: str, *, is_ipa: bool) -> bool:
 # Audio file output
 # ---------------------------------------------------------------------------
 
+_CLIP_MS: int = 40  # milliseconds to remove from both ends of every segment
+
+
+def _clip_wav_edges(wav_path: str) -> None:
+    """Remove a fixed number of milliseconds from the start and end of a WAV file in-place."""
+    try:
+        with wave.open(wav_path, "rb") as w:
+            params = w.getparams()
+            frames = w.readframes(w.getnframes())
+    except Exception:
+        return
+
+    frame_size = params.sampwidth * params.nchannels
+    clip_frames = int(params.framerate * _CLIP_MS / 1000)
+    clip_bytes = clip_frames * frame_size
+
+    if len(frames) <= clip_bytes * 2:
+        return  # segment too short to clip — leave it alone
+
+    trimmed = frames[clip_bytes : len(frames) - clip_bytes]
+
+    try:
+        with wave.open(wav_path, "wb") as w:
+            w.setparams(params)
+            w.writeframes(trimmed)
+    except Exception:
+        pass
+
+
 def _concat_wavs(wav_files: list[str], output_path: str) -> None:
     """Concatenate WAV files into one using the built-in wave module."""
     with wave.open(output_path, "wb") as out_wav:
@@ -353,6 +382,8 @@ def _render_one_segment(args: tuple) -> tuple[int, str]:
         seg_wav = f.name
 
     ok = _espeak_wav(text, seg_wav, is_ipa=is_ipa)
+    if ok and is_ipa and os.path.exists(seg_wav):
+        _clip_wav_edges(seg_wav)
     size = os.path.getsize(seg_wav) if os.path.exists(seg_wav) else 0
 
     with _log_lock:
