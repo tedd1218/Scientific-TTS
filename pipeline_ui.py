@@ -10,6 +10,7 @@ Run:
   -> Opens in your browser automatically
 """
 
+import base64
 import subprocess
 import sys
 import tempfile
@@ -84,10 +85,19 @@ with gr.Blocks(title="PDF to Speech") as demo:
             keep_txt    = gr.Checkbox(label="Keep intermediate .txt files",
                                       value=True)
             run_btn     = gr.Button("Run Pipeline", variant="primary")
+            pdf_viewer  = gr.HTML(value="<p style='color:gray'>Upload a PDF above to preview it here.</p>")
 
         with gr.Column():
             log_out = gr.Textbox(label="Log", lines=24, interactive=False, elem_id="log_out")
             wav_out = gr.Audio(label="Output WAV", type="filepath")
+
+    def show_pdf(f):
+        if f is None:
+            return "<p style='color:gray'>Upload a PDF above to preview it here.</p>"
+        b64 = base64.b64encode(Path(f.name).read_bytes()).decode()
+        return f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="600px" style="border:1px solid #ccc; border-radius:4px;"></iframe>'
+
+    pdf_input.change(fn=show_pdf, inputs=[pdf_input], outputs=[pdf_viewer])
 
     # Auto-scroll the log textarea to the bottom whenever its value changes
     log_out.change(
@@ -102,4 +112,4 @@ with gr.Blocks(title="PDF to Speech") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(inbrowser=False)
+    demo.launch(inbrowser=False, share=True)

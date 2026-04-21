@@ -7,8 +7,10 @@ Supported line formats (can be mixed freely):
   /ɪpə/
   The drug /əˌsiːtəˈmɪnəfən/ is common.
 
-Backend : espeak-ng (offline, no internet required)
-          Install: https://espeak-ng.org  or  choco install espeak-ng  (Windows)
+Backend : Amazon Polly (neural TTS, requires AWS credentials)
+          Install: pip install boto3
+          Credentials: set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
+          or configure via: aws configure
 
 Usage:
   python ipa_speaker.py                             # interactive, reads input.txt
@@ -17,6 +19,7 @@ Usage:
   python ipa_speaker.py input.txt --output out.wav  # save to WAV file
 """
 
+import csv
 import os
 import re
 import sys
@@ -27,6 +30,17 @@ import time
 import wave
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+
+import boto3
+
+# Load AWS credentials from CSV if not already set in the environment
+_CSV = Path(__file__).parent / "docspeaker_accessKeys.csv"
+if _CSV.exists() and not os.environ.get("AWS_ACCESS_KEY_ID"):
+    with _CSV.open(encoding="utf-8-sig") as _f:
+        _row = list(csv.DictReader(_f))[0]
+    os.environ["AWS_ACCESS_KEY_ID"]     = _row["Access key ID"]
+    os.environ["AWS_SECRET_ACCESS_KEY"] = _row["Secret access key"]
+    os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
 
 DEFAULT_FILE = Path(__file__).parent / "input.txt"
 IPA_PATTERN = re.compile(r"/([^/]+)/")
@@ -78,90 +92,22 @@ def load_lines(path: Path) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# espeak-ng helpers
+# Amazon Polly helpers
 # ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# IPA → espeak-ng phoneme notation
-# ---------------------------------------------------------------------------
+POLLY_VOICE   = "Joanna"   # neural en-US voice; supports IPA <phoneme>
+POLLY_ENGINE  = "neural"
+POLLY_RATE    = "16000"    # Hz — PCM sample rate returned by Polly
+POLLY_REGION  = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 
-# Longer sequences must come before their prefixes (e.g. "iː" before "i").
-_IPA_PAIRS: list[tuple[str, str]] = [
-    # Long vowels
-    ("iː", "i:"),   # fleece
-    ("uː", "u:"),   # goose
-    ("ɑː", "A:"),   # palm / father
-    ("ɔː", "O:"),   # thought / law
-    ("ɜː", "3:"),   # nurse (r-coloured in en-us)
-    ("oː", "O:"),   # importance-type /oːr/
-    # American English diphthongs
-    ("eɪ", "eI"),   # face
-    ("aɪ", "aI"),   # price
-    ("ɔɪ", "OI"),   # choice
-    ("aʊ", "aU"),   # mouth
-    ("oʊ", "oU"),   # goat (American)
-    ("əʊ", "oU"),   # goat (British notation → American rendering)
-    # American English rhotic diphthongs (replaces British I@/E@/U@)
-    ("ɪə", "Ir"),   # near  → "here"
-    ("eə", "Er"),   # square → "there"
-    ("ʊə", "Ur"),   # cure  → "tour"
-    # Affricates
-    ("tʃ", "tS"),   # church
-    ("dʒ", "dZ"),   # judge
-    # R-coloured vowels — pairs absorb any trailing ɹ/ɾ to prevent double-r
-    ("ɚɹ", "3"),    # inter-, butter + explicit ɹ
-    ("ɚɾ", "3"),    # properties: ɚ + flap
-    ("ɝɹ", "3:"),   # bird + explicit ɹ
-    ("ɝɾ", "3:"),   # bird + flap
-    ("ɚ",  "3"),    # r-coloured schwa (butter, letter, importance)
-    ("ɝ",  "3:"),   # r-coloured open-mid (bird, nurse)
-    # Monophthong vowels
-    ("ɪ", "I"),     # kit
-    ("ɛ", "E"),     # dress
-    ("æ", "a"),     # trap  ('{' causes file-parse issues in espeak-ng; 'a' is close)
-    ("ʌ", "V"),     # strut
-    ("ʊ", "U"),     # foot
-    ("ə", "@"),     # schwa
-    ("ɐ", "@"),     # near-open central → schwa
-    ("ɑ", "A:"),    # palm
-    ("ɒ", "A:"),    # lot  (en-us cot/caught merger → A:)
-    ("ɔ", "A:"),    # thought (en-us cot/caught merger → A:)
-    ("ᵻ", "I"),     # near-close central reduced vowel (e.g. dˈɛnsᵻɾi)
-    # Consonants
-    ("ŋ", "N"),     # sing
-    ("ʃ", "S"),     # ship
-    ("ʒ", "Z"),     # measure
-    ("θ", "T"),     # thin
-    ("ð", "D"),     # this
-    ("ɹ", "r"),     # red (IPA r vs ASCII r)
-    ("ɾ", "d"),     # alveolar flap → brief /d/ (butter, quantitative)
-    ("ɡ", "g"),     # IPA g vs ASCII g
-    # Stress / syllable markers
-    ("ˈ", "'"),     # primary stress
-    ("ˌ", ","),     # secondary stress
-    (".", "-"),     # syllable boundary
-    # Length mark — consumed by vowel pairs above; drop strays
-    ("ː", ""),
-]
-
-_IPA_2 = {src: dst for src, dst in _IPA_PAIRS if len(src) == 2}
-_IPA_1 = {src: dst for src, dst in _IPA_PAIRS if len(src) == 1}
+_polly = None  # created on first use
 
 
-def _ipa_to_espeak(ipa: str) -> str:
-    """Convert IPA Unicode string to espeak-ng [[...]] phoneme notation."""
-    tokens = []
-    i = 0
-    while i < len(ipa):
-        two = ipa[i: i + 2]
-        if two in _IPA_2:
-            tokens.append(_IPA_2[two])
-            i += 2
-        else:
-            ch = ipa[i]
-            tokens.append(_IPA_1.get(ch, ch))
-            i += 1
-    return "".join(tokens)
+def _get_polly():
+    global _polly
+    if _polly is None:
+        _polly = boto3.client("polly", region_name=POLLY_REGION)
+    return _polly
 
 
 def _xml_escape(s: str) -> str:
@@ -174,165 +120,97 @@ def _make_ssml(text: str, *, is_ipa: bool) -> str:
     return f"<speak>{_xml_escape(text)}</speak>"
 
 
-def _espeak_run(args: list[str], text: str) -> tuple[bool, str]:
-    """Run espeak-ng with text via a temp file. Returns (success, stderr)."""
-    tmp = None
+def _line_to_ssml(line: str, ipa_only: bool = False) -> str:
+    """Build a single SSML string for a whole line, with IPA segments inline."""
+    parts = ["<speak>"]
+    for text, is_ipa in split_line(line, ipa_only=ipa_only):
+        if is_ipa:
+            parts.append(f'<phoneme alphabet="ipa" ph="{_xml_escape(text)}"> </phoneme>')
+        else:
+            parts.append(_xml_escape(text))
+    parts.append("</speak>")
+    return "".join(parts)
+
+
+def check_polly() -> bool:
+    """Verify Polly credentials and synthesize a short test phrase."""
     try:
-        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False,
-                                         mode="w", encoding="utf-8") as f:
-            f.write(text)
-            tmp = f.name
-        result = subprocess.run(
-            ["espeak-ng", "-v", "en-us", "-f", tmp] + args,
-            stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+        resp = _get_polly().synthesize_speech(
+            Text="<speak>test</speak>",
+            TextType="ssml",
+            OutputFormat="pcm",
+            SampleRate=POLLY_RATE,
+            VoiceId=POLLY_VOICE,
+            Engine=POLLY_ENGINE,
         )
-        err = result.stderr.decode("utf-8", errors="replace").strip()
-        return result.returncode == 0, err
-    except FileNotFoundError:
-        return False, "espeak-ng not found"
-    finally:
-        if tmp:
-            try: os.unlink(tmp)
-            except OSError: pass
-
-
-_SSML_FLAG: str | None = None  # set by check_espeak(): flag string if supported, None to use [[]] notation
-
-
-def check_espeak() -> bool:
-    """Run a quick sanity check and print what espeak-ng version is available."""
-    try:
-        r = subprocess.run(["espeak-ng", "--version"],
-                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        ver = (r.stdout + r.stderr).decode("utf-8", errors="replace").strip().splitlines()[0]
-        print(f"  espeak-ng: {ver}")
-    except FileNotFoundError:
-        print("  [!] espeak-ng not found in PATH.")
-        print("      Windows: choco install espeak-ng")
+        size = len(resp["AudioStream"].read())
+        print(f"  Amazon Polly: ok  (voice={POLLY_VOICE}, engine={POLLY_ENGINE}, pcm_bytes={size})")
+        return True
+    except Exception as e:
+        print(f"  [!] Amazon Polly error: {e}")
+        print("      Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION")
         return False
 
-    # Test plain text → WAV
+
+def _polly_wav_ssml(ssml: str, wav_path: str) -> bool:
+    """Send a pre-built SSML string to Polly and write the result as a WAV."""
+    delay = 2
+    while True:
+        try:
+            resp = _get_polly().synthesize_speech(
+                Text=ssml,
+                TextType="ssml",
+                OutputFormat="pcm",
+                SampleRate=POLLY_RATE,
+                VoiceId=POLLY_VOICE,
+                Engine=POLLY_ENGINE,
+            )
+            pcm = resp["AudioStream"].read()
+            with wave.open(wav_path, "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(int(POLLY_RATE))
+                w.writeframes(pcm)
+            return True
+        except Exception as e:
+            if "ThrottlingException" in str(e) or "Rate exceeded" in str(e):
+                print(f"\n  [Polly throttled] retrying in {delay}s...", flush=True)
+                time.sleep(delay)
+                delay = min(delay * 2, 30)
+            else:
+                print(f"\n  [Polly FAIL] {e}", flush=True)
+                return False
+
+
+def _polly_wav(text: str, wav_path: str, *, is_ipa: bool) -> bool:
+    return _polly_wav_ssml(_make_ssml(text, is_ipa=is_ipa), wav_path)
+
+
+def _polly_speak(text: str, *, is_ipa: bool) -> bool:
+    """Speak a segment by synthesizing to a temp WAV and playing it."""
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-        test_wav = f.name
-    ok, err = _espeak_run(["-w", test_wav], "test voice check")
-    size = os.path.getsize(test_wav) if os.path.exists(test_wav) else 0
-    try: os.unlink(test_wav)
-    except OSError: pass
-    print(f"  plain-text test: rc={'ok' if ok else 'FAIL'}  wav_size={size}  err={err!r}")
-
-    # Probe SSML flag: try --ssml then -m
-    global _SSML_FLAG
-    ssml_test = '<speak><phoneme alphabet="ipa" ph="hɛloʊ"> </phoneme></speak>'
-    for flag in ("--ssml", "-m"):
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            test_wav = f.name
-        ok2, err2 = _espeak_run([flag, "-w", test_wav], ssml_test)
-        size2 = os.path.getsize(test_wav) if os.path.exists(test_wav) else 0
-        try: os.unlink(test_wav)
+        tmp = f.name
+    try:
+        ok = _polly_wav(text, tmp, is_ipa=is_ipa)
+        if ok:
+            if sys.platform == "win32":
+                subprocess.run(
+                    ["powershell", "-c", f'(New-Object Media.SoundPlayer "{tmp}").PlaySync()'],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            elif sys.platform == "darwin":
+                subprocess.run(["afplay", tmp], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:
+                subprocess.run(["aplay", tmp], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return ok
+    finally:
+        try: os.unlink(tmp)
         except OSError: pass
-        print(f"  ssml/ipa  test ({flag}): rc={'ok' if ok2 else 'FAIL'}  wav_size={size2}  err={err2!r}")
-        if ok2 and size2 > 5000:
-            _SSML_FLAG = flag
-            print(f"  Using SSML flag: {flag}")
-            break
-    else:
-        print("  SSML not supported — falling back to [[phoneme]] notation.")
-
-    # Test [[phoneme]] notation
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-        test_wav = f.name
-    ok3, err3 = _espeak_run(["-w", test_wav], "[[h@'l@U]]")
-    size3 = os.path.getsize(test_wav) if os.path.exists(test_wav) else 0
-    try: os.unlink(test_wav)
-    except OSError: pass
-    print(f"  [[phoneme]] test: rc={'ok' if ok3 else 'FAIL'}  wav_size={size3}  err={err3!r}")
-
-    # Test individual phonemes that are known to be tricky
-    phoneme_tests = [
-        ("[[a]]",        "/æ/ (a)"),
-        ("[[S]]",        "/ʃ/ (cap-S)"),
-        ("[['akS@n]]",   "action suffix"),
-        ("[[fr'akS@n@l]]",  "fractional"),
-        ("[[,Int@r'akS@n]]", "interaction"),
-    ]
-    for content, desc in phoneme_tests:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            tw = f.name
-        tok, terr = _espeak_run(["-w", tw], content)
-        tsz = os.path.getsize(tw) if os.path.exists(tw) else 0
-        try: os.unlink(tw)
-        except OSError: pass
-        print(f"  phoneme test {desc:<25} rc={'ok' if tok else 'FAIL'}  wav={tsz}b  err={terr!r}")
-
-    # Show conversions for known-tricky IPA sequences
-    for sample in ("dˈɛnsᵻɾi", "ˌɪntɚɹˈækʃən", "fɹˈækʃənəl", "kwˈɔntᵻɾɪtˌɪv"):
-        print(f"  IPA '{sample}' → [[{_ipa_to_espeak(sample)}]]")
-    return ok
-
-
-def _ipa_content(text: str) -> tuple[str, list[str]]:
-    """Return (text_to_pass, extra_flags) for an IPA segment.
-
-    Uses SSML <phoneme> if supported, otherwise falls back to [[...]] notation.
-    """
-    if _SSML_FLAG:
-        return _make_ssml(text, is_ipa=True), [_SSML_FLAG]
-    return f"[[{_ipa_to_espeak(text)}]]", []
-
-
-def _espeak_speak(text: str, *, is_ipa: bool) -> bool:
-    """Speak a segment directly via espeak-ng (no file output)."""
-    if is_ipa:
-        content, flags = _ipa_content(text)
-    else:
-        content, flags = text, []
-    ok, _ = _espeak_run(flags, content)
-    return ok
-
-
-def _espeak_wav(text: str, wav_path: str, *, is_ipa: bool) -> bool:
-    """Render a segment to WAV via espeak-ng."""
-    if is_ipa:
-        content, flags = _ipa_content(text)
-    else:
-        content, flags = text, []
-    ok, err = _espeak_run(flags + ["-w", wav_path], content)
-    if not ok:
-        print(f"\n  [espeak-ng FAIL] {err[:120]}", flush=True)
-    return ok
 
 
 # ---------------------------------------------------------------------------
 # Audio file output
 # ---------------------------------------------------------------------------
-
-_CLIP_MS: int = 40  # milliseconds to remove from both ends of every segment
-
-
-def _clip_wav_edges(wav_path: str) -> None:
-    """Remove a fixed number of milliseconds from the start and end of a WAV file in-place."""
-    try:
-        with wave.open(wav_path, "rb") as w:
-            params = w.getparams()
-            frames = w.readframes(w.getnframes())
-    except Exception:
-        return
-
-    frame_size = params.sampwidth * params.nchannels
-    clip_frames = int(params.framerate * _CLIP_MS / 1000)
-    clip_bytes = clip_frames * frame_size
-
-    if len(frames) <= clip_bytes * 2:
-        return  # segment too short to clip — leave it alone
-
-    trimmed = frames[clip_bytes : len(frames) - clip_bytes]
-
-    try:
-        with wave.open(wav_path, "wb") as w:
-            w.setparams(params)
-            w.writeframes(trimmed)
-    except Exception:
-        pass
 
 
 def _concat_wavs(wav_files: list[str], output_path: str) -> None:
@@ -364,67 +242,55 @@ def _write_log() -> None:
             f.write(line + "\n")
 
 
-def _render_one_segment(args: tuple) -> tuple[int, str]:
-    """Render a single (text, is_ipa) segment to a temp WAV. Returns (index, wav_path)."""
-    idx, text, is_ipa = args
-    if is_ipa and not _SSML_FLAG:
-        espeak_str = _ipa_to_espeak(text)
-        label = f"[{idx:>4}] IPA: {text[:60]!r}  →  [[{espeak_str}]]"
-    else:
-        label = f"[{idx:>4}] {'IPA' if is_ipa else 'TXT'}: {text[:80]!r}"
+def _render_one_line(args: tuple) -> tuple[int, str]:
+    """Render a full line as a single SSML Polly call. Returns (index, wav_path)."""
+    idx, line, ipa_only = args
+    label = f"[{idx:>4}] {line[:80]!r}"
     entry = f"[{time.strftime('%H:%M:%S')}] START {label}"
 
     with _log_lock:
         _in_progress[idx] = entry
         _write_log()
 
+    ssml = _line_to_ssml(line, ipa_only=ipa_only)
+
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         seg_wav = f.name
 
-    ok = _espeak_wav(text, seg_wav, is_ipa=is_ipa)
-    if ok and is_ipa and os.path.exists(seg_wav):
-        _clip_wav_edges(seg_wav)
+    _polly_wav_ssml(ssml, seg_wav)
     size = os.path.getsize(seg_wav) if os.path.exists(seg_wav) else 0
 
     with _log_lock:
         _in_progress.pop(idx, None)
         _write_log()
 
-    if is_ipa:
-        status = "ok" if size > 44 else "SILENT"
-        print(f"\n  [{idx:>4}] {status} {size:>7}b  {label}", flush=True)
+    status = "ok" if size > 44 else "SILENT"
+    print(f"\n  [{idx:>4}] {status} {size:>7}b  {label}", flush=True)
 
     return idx, seg_wav
 
 
 def render_to_file(lines: list[str], output_path: str, ipa_only: bool = False) -> None:
-    """Render all lines to a WAV file using espeak-ng."""
+    """Render all lines to a WAV file using Amazon Polly."""
     if not output_path.endswith(".wav"):
         output_path += ".wav"
 
-    check_espeak()
+    check_polly()
 
-    # Clear state from any previous run
     with _log_lock:
         _in_progress.clear()
         _write_log()
     print(f"  Segment log: {_segment_log_path}  (only in-progress segments shown — hangers stay visible)\n")
 
-    segments = [
-        (text, is_ipa)
-        for line in lines
-        for text, is_ipa in split_line(line, ipa_only=ipa_only)
-    ]
-
-    total_segments = len(segments)
-    wav_tmps: list[str | None] = [None] * total_segments
+    total_lines = len(lines)
+    wav_tmps: list[str | None] = [None] * total_lines
 
     try:
         completed = 0
         with ThreadPoolExecutor(max_workers=8) as pool:
             futures = {
-                pool.submit(_render_one_segment, (idx, text, is_ipa)): idx
-                for idx, (text, is_ipa) in enumerate(segments)
+                pool.submit(_render_one_line, (idx, line, ipa_only)): idx
+                for idx, line in enumerate(lines)
             }
             for future in as_completed(futures):
                 try:
@@ -434,14 +300,12 @@ def render_to_file(lines: list[str], output_path: str, ipa_only: bool = False) -
                     wav_path = None
                 wav_tmps[idx] = wav_path
                 completed += 1
-                print(f"\r  Rendering segments {completed}/{total_segments} ({100 * completed // total_segments}%)", end="", flush=True)
+                print(f"\r  Rendering lines {completed}/{total_lines} ({100 * completed // total_lines}%)", end="", flush=True)
         print()
 
         valid = [f for f in wav_tmps if f is not None]
         if not valid or not any(os.path.getsize(f) > 44 for f in valid):
-            print("  [!] No audio generated. Is espeak-ng installed?")
-            print("      Windows: choco install espeak-ng")
-            print("      Linux:   sudo apt install espeak-ng")
+            print("  [!] No audio generated. Check AWS credentials and region.")
             return
 
         _concat_wavs(valid, output_path)
@@ -462,15 +326,30 @@ def render_to_file(lines: list[str], output_path: str, ipa_only: bool = False) -
 # ---------------------------------------------------------------------------
 
 def speak_segment(text: str, is_ipa: bool) -> None:
-    if not _espeak_speak(text, is_ipa=is_ipa):
-        print("  [!] espeak-ng not found.")
-        print("      Windows: choco install espeak-ng")
-        print("      Linux:   sudo apt install espeak-ng")
+    if not _polly_speak(text, is_ipa=is_ipa):
+        print("  [!] Polly failed. Check AWS credentials and region.")
 
 
 def speak_line(line: str, ipa_only: bool = False) -> None:
-    for text, is_ipa in split_line(line, ipa_only=ipa_only):
-        speak_segment(text, is_ipa)
+    ssml = _line_to_ssml(line, ipa_only=ipa_only)
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+        tmp = f.name
+    try:
+        if _polly_wav_ssml(ssml, tmp):
+            if sys.platform == "win32":
+                subprocess.run(
+                    ["powershell", "-c", f'(New-Object Media.SoundPlayer "{tmp}").PlaySync()'],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            elif sys.platform == "darwin":
+                subprocess.run(["afplay", tmp], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:
+                subprocess.run(["aplay", tmp], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
+            print("  [!] Polly failed. Check AWS credentials and region.")
+    finally:
+        try: os.unlink(tmp)
+        except OSError: pass
 
 
 def display_line(i: int, line: str, ipa_only: bool = False) -> None:
